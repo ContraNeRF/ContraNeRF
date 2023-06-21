@@ -1,0 +1,72 @@
+output: ""
+output_base: "/slurm_data/yanghao/project/contranerf/contranerf/outputs/debug"
+expname: "pretraining"
+workers: 6
+
+solver:
+  iterations: 100000
+  batch_size: 512
+  base_lr: 0.001
+  weight_decay: 0.01
+  custom_list: [["epipolar_layer", "view_layer"], [['lr', 0.0001], ['lr', 0.0001]]]
+  lr_decay_step: 50000
+  lr_decay_factor: 0.5
+  milestones: [50000, 100000]
+  warmup_factor: 0.00025
+  warmup_iters: 4000
+  warmup_method: 'linear'
+  optimizer: 'AdamW'
+  scheduler: 'WarmupMultiStepLR'
+  t_max: 10000
+
+data:
+  rootdir_scannet: "/slurm_data/yanghao/data/DBT/stage-one/CroppedData/GuiLinZhongYiYuan/20201212"
+  rootdir_front3d: "/slurm_data/yanghao/data/DBT/stage-one/CroppedData/ChangZhouFuYou/20211231"
+  num_source_views: 10
+  num_source_views_train: 10
+  sample_mode: 'uniform'
+  center_ratio: 0.8
+  num_samples: 64
+  num_importance: 64
+  inv_uniform: True
+  deterministic: False
+  rectify_inplane_rotation: False
+  testskip: 8
+  camera_std: 0.0005
+
+logging:
+  print_iter: 100
+  weights_iter: 10000
+
+dataset:
+  train: ["front3d"]
+
+test:
+  chunk_size: 1024
+  test_iter: 100000
+  datasets: ["scannet_test"]
+  scannet_scenes: ["scene0289_00", "scene0204_00", "scene0205_00", "scene0587_02", 
+                   "scene0611_01", "scene0269_01", "scene0549_01", "scene0456_00"]
+
+model:
+  name: 'ContraNeRF'
+  loss:
+    rgb: True
+    rgb_coarse: True
+
+mlpnet:
+  name: 'MLPNet'
+  coarse_feat_dim: 32
+  fine_feat_dim: 32
+  image_feat_dim: 32
+  white_bkgd: False
+  anti_alias_pooling: True
+
+crossview:
+  n_sample: 16
+  deterministic: True
+  n_layers: 1
+  skip_connect: True
+  inv_uniform: True
+  epipolar:
+    dropout: 0.0
